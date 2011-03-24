@@ -1,0 +1,13 @@
+Revision history for Timer-Simple
+
+1.002 2011-03-23
+
+  - fix bug of adjusting the clock when calling stop() mutliple times
+
+1.001 2011-03-23
+  - Overload numeric context (evaluates to elapsed())
+  - Provide package functions for working with multiple timers
+
+1.000 2011-03-23
+
+  - Initial version
