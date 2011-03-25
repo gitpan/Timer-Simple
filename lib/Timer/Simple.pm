@@ -9,7 +9,7 @@
 #
 package Timer::Simple;
 BEGIN {
-  $Timer::Simple::VERSION = '1.002';
+  $Timer::Simple::VERSION = '1.003';
 }
 BEGIN {
   $Timer::Simple::AUTHORITY = 'cpan:RWSTAUNER';
@@ -18,6 +18,7 @@ BEGIN {
 
 use strict;
 use warnings;
+use Carp qw(croak carp); # core
 use overload # core
   '""' => \&string,
   '0+' => \&elapsed,
@@ -28,11 +29,16 @@ sub new {
   my $class = shift;
   my $self = {
     start => 1,
+    string => 'short',
     hires => HIRES(),
     @_ == 1 ? %{$_[0]} : @_,
   };
 
-  $self->{format} ||= default_format_spec($self->{hires});
+  if( $self->{format} ){
+    carp("$class option 'format' is deprecated.  Use 'hms' (or 'string')");
+    $self->{hms} ||= delete $self->{format};
+  }
+  $self->{hms} ||= default_format_spec($self->{hires});
 
   bless $self, $class;
 
@@ -47,9 +53,7 @@ sub elapsed {
   my ($self) = @_;
 
   if( !defined($self->{started}) ){
-    # lazy load Carp since this is the only place we use it
-    require Carp; # core
-    Carp::croak("Timer never started!");
+    croak("Timer never started!");
   }
 
   # if stop() was called, use that time, otherwise "now"
@@ -70,7 +74,7 @@ sub hms {
 
   return wantarray
     ? ($h, $m, $s)
-    : sprintf(($format || $self->{format}), $h, $m, $s);
+    : sprintf(($format || $self->{hms}), $h, $m, $s);
 }
 
 
@@ -96,8 +100,32 @@ sub stop {
 
 
 sub string {
-  # this could be configurable: new(string => 'elapsed') # default 'hms'
-  scalar $_[0]->hms;
+  my ($self, $format) = @_;
+  $format ||= $self->{string};
+
+  # if it's a method name or a coderef delegate to it
+  return scalar $self->$format()
+    if $self->can($format)
+      || ref($format) eq 'CODE'
+      || overload::Method($format, '&{}');
+
+  # cache the time so that all formats show the same (in case it isn't stopped)
+  my $seconds = $self->elapsed;
+
+  my $string;
+  if( $format eq 'short' ){
+    $string = sprintf('%ss (' . $self->{hms} . ')', $seconds, separate_hms($seconds));
+  }
+  elsif( $format =~ /human|full/ ){
+    # human
+    $string = sprintf('%d hours %d minutes %s seconds', separate_hms($seconds));
+    $string = $seconds . ' seconds (' . $string . ')'
+      if $format eq 'full';
+  }
+  else {
+    croak("Unknown format: $format");
+  }
+  return $string;
 }
 
 
@@ -170,7 +198,7 @@ Timer::Simple - Small, simple timer (stopwatch) object
 
 =head1 VERSION
 
-version 1.002
+version 1.003
 
 =head1 SYNOPSIS
 
@@ -181,7 +209,7 @@ version 1.002
 
   # or take more control
 
-  my $timer = Timer::Simple->new(start => 0);
+  my $timer = Timer::Simple->new(start => 0, string => 'human');
     do_something_before;
   $timer->start;
     do_something_else;
@@ -192,6 +220,7 @@ version 1.002
   $timer->stop;
     do_something_after;
   printf "whole process lasted %d hours %d minutes %f seconds\n", $t->hms;
+    # or simply "whole process lasted $t\n" with 'string' => 'human'
 
   $timer->restart; # use the same object to time something else
 
@@ -214,12 +243,11 @@ This is a simple object to make timing an operation as easy as possible.
 
 It uses L<Time::HiRes> if available (unless you tell it not to).
 
-It stringifies to the elapsed time in an hours/minutes/seconds format
-(default is C<00:00:00.000000> with L<Time::HiRes> or C<00:00:00> without).
+It stringifies to the elapsed time (see L</string>).
 
 This module aims to be small and efficient
-and do what is useful in most cases,
-while still offering some configurability to handle edge cases.
+and do what is useful in most cases
+while also being sufficiently customizable.
 
 =head1 METHODS
 
@@ -231,13 +259,6 @@ Constructor;  Takes a hash or hashref of arguments:
 
 =item *
 
-C<start> - Boolean; Defaults to true;
-
-Set this to false to skip the initial setting of the clock.
-You must call L</start> explicitly if you disable this.
-
-=item *
-
 C<hires> - Boolean; Defaults to true;
 
 Set this to false to not attempt to use L<Time::HiRes>
@@ -245,7 +266,18 @@ and just use L<time|perlfunc/time> instead.
 
 =item *
 
-C<format> - Alternate C<sprintf> string; See L</hms>.
+C<hms> - Alternate C<sprintf> string used by L</hms>
+
+=item *
+
+C<start> - Boolean; Defaults to true;
+
+Set this to false to skip the initial setting of the clock.
+You must call L</start> explicitly if you disable this.
+
+=item *
+
+C<string> - The default format for L</string>. Defaults to C<'short'>;
 
 =back
 
@@ -261,13 +293,14 @@ This method is used as the object's value when used in numeric context:
 
   # list
   my @units = $timer->hms;
+
   sprintf("%d hours %minutes %f seconds", $timer->hms);
 
   # scalar
   print "took: " . $timer->hms . "\n"; # same as print "took :$timer\n";
 
   # alternate format
-  $string = $timer->hms('%04dh %04dm %020.10f');
+  $string = $timer->hms('%04d h %04d m %020.10f s');
 
 Separates the elapsed time (seconds) into B<h>ours, B<m>inutes, and B<s>econds.
 
@@ -297,7 +330,35 @@ processing (that you don't want timed) before reporting the elapsed time.
 
 =head2 string
 
-Returns the scalar (C<sprintf>) version of L</hms>.
+  print $timer->string($format);
+
+  print "took: $timer";  # stringification equivalent to $timer->string()
+
+Returns a string representation of the elapsed time.
+
+The format can be passed as an argument.  If no format is provided
+the value of C<string> (passed to L</new>) will be used.
+
+The format can be the name of another method (which will be called),
+a subroutine (coderef) which will be called like an object method,
+or one of the following strings:
+
+=over 4
+
+=item *
+
+C<short> - Total elapsed seconds followed by C<hms>: C<'123s (00:02:03)'>
+
+=item *
+
+C<human> - Separate units spelled out: C<'6 hours 4 minutes 12 seconds'>
+
+=item *
+
+C<full> - Total elapsed seconds plus C<human>: C<'2 seconds (0 hours 0 minutes 2 seconds)'>
+
+=back
+
 This is the method called when the object is stringified (using L<overload>).
 
 =head2 time
@@ -318,8 +379,8 @@ Indicates whether L<Time::HiRes> is available.
   $spec_fractional = default_format_spec(1); # true  forces fraction
 
 Returns an appropriate C<sprintf> format spec according to the provided boolean.
-If true,  the spec forces fractional seconds (floating point (C<%f>)).
-If false, the spec forces seconds to an integer (whole number (C<%d>)).
+If true,  the spec forces fractional seconds (like C<'00:00:00.000000'>).
+If false, the spec forces seconds to an integer (like C<'00:00:00'>).
 If not specified the value of L</HIRES> will be used.
 
 =head2 format_hms

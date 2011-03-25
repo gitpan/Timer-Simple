@@ -28,7 +28,7 @@ no_index:
 provides:
   Timer::Simple:
     file: lib/Timer/Simple.pm
-    version: 1.002
+    version: 1.003
 requires:
   Carp: 0
   Time::HiRes: 0
@@ -38,7 +38,7 @@ resources:
   bugtracker: http://rt.cpan.org/Public/Dist/Display.html?Name=Timer-Simple
   homepage: http://github.com/magnificent-tears/Timer-Simple/tree
   repository: git://github.com/magnificent-tears/Timer-Simple.git
-version: 1.002
+version: 1.003
 x_Dist_Zilla:
   plugins:
     -

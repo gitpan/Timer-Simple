@@ -54,7 +54,7 @@
    "provides" : {
       "Timer::Simple" : {
          "file" : "lib/Timer/Simple.pm",
-         "version" : "1.002"
+         "version" : "1.003"
       }
    },
    "release_status" : "stable",
@@ -70,7 +70,7 @@
          "web" : "http://github.com/magnificent-tears/Timer-Simple/tree"
       }
    },
-   "version" : "1.002",
+   "version" : "1.003",
    "x_Dist_Zilla" : {
       "plugins" : [
          {
