@@ -7,17 +7,18 @@
 # This is free software; you can redistribute it and/or modify it under
 # the same terms as the Perl 5 programming language system itself.
 #
+use strict;
+use warnings;
+
 package Timer::Simple;
 BEGIN {
-  $Timer::Simple::VERSION = '1.003';
+  $Timer::Simple::VERSION = '1.004';
 }
 BEGIN {
   $Timer::Simple::AUTHORITY = 'cpan:RWSTAUNER';
 }
 # ABSTRACT: Small, simple timer (stopwatch) object
 
-use strict;
-use warnings;
 use Carp qw(croak carp); # core
 use overload # core
   '""' => \&string,
@@ -147,7 +148,7 @@ sub time {
 {
   # only perform the check once, but don't perform the check until required
   my $HIRES;
-  sub HIRES () {
+  sub HIRES () {  ## no critic Prototypes
     $HIRES = (do { local $@; eval { require Time::HiRes; 1; } } || '')
       if !defined($HIRES);
     return $HIRES;
@@ -198,7 +199,7 @@ Timer::Simple - Small, simple timer (stopwatch) object
 
 =head1 VERSION
 
-version 1.003
+version 1.004
 
 =head1 SYNOPSIS
 
@@ -409,6 +410,9 @@ but are provided for convenience to facilitate additional functionality.
 They are not available for export (to avoid L<Exporter> overhead).
 See L<Sub::Import> if you really want to import these methods.
 
+=for test_synopsis my ( $timer1, $timer2 );
+no strict 'subs';
+
 =head1 SEE ALSO
 
 These are some other timers I found on CPAN
@@ -453,49 +457,49 @@ in addition to those websites please use your favorite search engine to discover
 
 Search CPAN
 
+The default CPAN search engine, useful to view POD in HTML format.
+
 L<http://search.cpan.org/dist/Timer-Simple>
 
 =item *
 
 RT: CPAN's Bug Tracker
 
+The RT ( Request Tracker ) website is the default bug/issue tracking system for CPAN.
+
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Timer-Simple>
-
-=item *
-
-AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Timer-Simple>
 
 =item *
 
 CPAN Ratings
 
+The CPAN Ratings is a website that allows community ratings and reviews of Perl modules.
+
 L<http://cpanratings.perl.org/d/Timer-Simple>
 
 =item *
 
-CPAN Forum
+CPAN Testers
 
-L<http://cpanforum.com/dist/Timer-Simple>
+The CPAN Testers is a network of smokers who run automated tests on uploaded CPAN distributions.
 
-=item *
-
-CPANTS Kwalitee
-
-L<http://cpants.perl.org/dist/overview/Timer-Simple>
-
-=item *
-
-CPAN Testers Results
-
-L<http://cpantesters.org/distro/T/Timer-Simple.html>
+L<http://www.cpantesters.org/distro/T/Timer-Simple>
 
 =item *
 
 CPAN Testers Matrix
 
+The CPAN Testers Matrix is a website that provides a visual overview of the test results for a distribution on various Perls/platforms.
+
 L<http://matrix.cpantesters.org/?dist=Timer-Simple>
+
+=item *
+
+CPAN Testers Dependencies
+
+The CPAN Testers Dependencies is a website that shows a chart of the test results of all dependencies for a distribution.
+
+L<http://deps.cpantesters.org/?module=Timer::Simple>
 
 =back
 
@@ -508,9 +512,9 @@ progress on the request by the system.
 =head2 Source Code
 
 
-L<http://github.com/magnificent-tears/Timer-Simple/tree>
+L<http://github.com/rwstauner/Timer-Simple>
 
-  git clone git://github.com/magnificent-tears/Timer-Simple.git
+  git clone http://github.com/rwstauner/Timer-Simple
 
 =head1 AUTHOR
 

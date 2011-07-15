@@ -21,7 +21,7 @@ my %module_build_args = (
     'Randy Stauner <rwstauner@cpan.org>'
   ],
   'dist_name' => 'Timer-Simple',
-  'dist_version' => '1.003',
+  'dist_version' => '1.004',
   'license' => 'perl',
   'module_name' => 'Timer::Simple',
   'recommends' => {},

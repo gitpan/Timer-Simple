@@ -1,12 +1,4 @@
 #!perl
-
-BEGIN {
-  unless ($ENV{RELEASE_TESTING}) {
-    require Test::More;
-    Test::More::plan(skip_all => 'these tests are for release candidate testing');
-  }
-}
-
 #
 # This file is part of Timer-Simple
 #
@@ -17,7 +9,6 @@ BEGIN {
 #
 
 use Test::More;
-
-eval "use Test::Kwalitee";
-plan skip_all => "Test::Kwalitee required for testing kwalitee"
-  if $@;
+eval 'use Test::CPAN::Meta::JSON';
+plan skip_all => 'Test::CPAN::Meta::JSON required for testing META.json' if $@;
+meta_json_ok();
