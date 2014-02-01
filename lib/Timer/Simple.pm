@@ -11,9 +11,8 @@ use strict;
 use warnings;
 
 package Timer::Simple;
-BEGIN {
-  $Timer::Simple::VERSION = '1.004';
-}
+# git description: v1.004-5-gb873a31
+$Timer::Simple::VERSION = '1.005';
 BEGIN {
   $Timer::Simple::AUTHORITY = 'cpan:RWSTAUNER';
 }
@@ -117,6 +116,11 @@ sub string {
   if( $format eq 'short' ){
     $string = sprintf('%ss (' . $self->{hms} . ')', $seconds, separate_hms($seconds));
   }
+  elsif( $format eq 'rps' ){
+    my $elapsed = sprintf '%f', $seconds;
+    my $rps     = $elapsed == 0 ? '??' : sprintf '%.3f', 1 / $elapsed;
+    $string = "${elapsed}s ($rps/s)";
+  }
   elsif( $format =~ /human|full/ ){
     # human
     $string = sprintf('%d hours %d minutes %s seconds', separate_hms($seconds));
@@ -186,12 +190,15 @@ sub separate_hms {
 
 1;
 
-
 __END__
+
 =pod
 
-=for :stopwords Randy Stauner hms cpan testmatrix url annocpan anno bugtracker rt cpants
-kwalitee diff irc mailto metadata placeholders
+=encoding UTF-8
+
+=for :stopwords Randy Stauner ACKNOWLEDGEMENTS Tomohiro Hosaka <bokutin@bokut.in> hms cpan
+testmatrix url annocpan anno bugtracker rt cpants kwalitee diff irc mailto
+metadata placeholders metacpan
 
 =head1 NAME
 
@@ -199,7 +206,7 @@ Timer::Simple - Small, simple timer (stopwatch) object
 
 =head1 VERSION
 
-version 1.004
+version 1.005
 
 =head1 SYNOPSIS
 
@@ -352,6 +359,10 @@ C<short> - Total elapsed seconds followed by C<hms>: C<'123s (00:02:03)'>
 
 =item *
 
+C<rps> - Total elapsed seconds followed by requests per second: C<'4.743616s (0.211/s)'>
+
+=item *
+
 C<human> - Separate units spelled out: C<'6 hours 4 minutes 12 seconds'>
 
 =item *
@@ -455,51 +466,11 @@ in addition to those websites please use your favorite search engine to discover
 
 =item *
 
-Search CPAN
+MetaCPAN
 
-The default CPAN search engine, useful to view POD in HTML format.
+A modern, open-source CPAN search engine, useful to view POD in HTML format.
 
-L<http://search.cpan.org/dist/Timer-Simple>
-
-=item *
-
-RT: CPAN's Bug Tracker
-
-The RT ( Request Tracker ) website is the default bug/issue tracking system for CPAN.
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Timer-Simple>
-
-=item *
-
-CPAN Ratings
-
-The CPAN Ratings is a website that allows community ratings and reviews of Perl modules.
-
-L<http://cpanratings.perl.org/d/Timer-Simple>
-
-=item *
-
-CPAN Testers
-
-The CPAN Testers is a network of smokers who run automated tests on uploaded CPAN distributions.
-
-L<http://www.cpantesters.org/distro/T/Timer-Simple>
-
-=item *
-
-CPAN Testers Matrix
-
-The CPAN Testers Matrix is a website that provides a visual overview of the test results for a distribution on various Perls/platforms.
-
-L<http://matrix.cpantesters.org/?dist=Timer-Simple>
-
-=item *
-
-CPAN Testers Dependencies
-
-The CPAN Testers Dependencies is a website that shows a chart of the test results of all dependencies for a distribution.
-
-L<http://deps.cpantesters.org/?module=Timer::Simple>
+L<http://metacpan.org/release/Timer-Simple>
 
 =back
 
@@ -512,13 +483,17 @@ progress on the request by the system.
 =head2 Source Code
 
 
-L<http://github.com/rwstauner/Timer-Simple>
+L<https://github.com/rwstauner/Timer-Simple>
 
-  git clone http://github.com/rwstauner/Timer-Simple
+  git clone https://github.com/rwstauner/Timer-Simple.git
 
 =head1 AUTHOR
 
 Randy Stauner <rwstauner@cpan.org>
+
+=head1 CONTRIBUTOR
+
+Tomohiro Hosaka <bokutin@bokut.in>
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -528,4 +503,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
